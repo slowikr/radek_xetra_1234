@@ -11,6 +11,7 @@ boto3 = "*"
 progressbar = "*"
 pyarrow = "*"
 azure-storage-blob = "*"
+pyyaml = "*"
 
 [dev-packages]
 
