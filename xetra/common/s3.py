@@ -17,16 +17,26 @@ class S3BucketConnector():
         """
         self._logger=logging.getLogger(__name__)
         self.endpoint_url=endpoint_url
-        self.session = boto3.Session(aws_access_key_id=os.environ[access_key], aws_secret_access_key=os.environ[secret_key])
+        self.session = boto3.Session(aws_access_key_id=os.environ[access_key],
+                                     aws_secret_access_key=os.environ[secret_key])
         self._s3=self.session.resource(service_name='s3', endpoint_url=endpoint_url)
         self._bucket=self._s3.Bucket(bucket)
 
     def list_in_prefix(self, prefix: str):
+        """
+        list of all files with specified prefix
+        """
         files = [obj.key for obj in self._bucket.objects.filter(Prefix=prefix)]
-        return files 
+        return files
 
     def read_csv_to_df(self):
-        pass
+        """
+        Some Text
+        """
+        return self
 
     def write_df_to_s3(self):
-        pass
+        """
+        Some text
+        """
+        return self

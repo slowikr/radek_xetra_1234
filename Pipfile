@@ -12,6 +12,9 @@ progressbar = "*"
 pyarrow = "*"
 azure-storage-blob = "*"
 pyyaml = "*"
+pylint = "*"
+moto = "*"
+coverage = "*"
 
 [dev-packages]
 
