@@ -1,7 +1,7 @@
 """Xetra ETL COmponent"""
 import logging
 from typing import NamedTuple
-from datetime import datetime, timedelta
+from datetime import datetime
 import pandas as pd
 from xetra.common.s3 import S3BucketConnector
 from xetra.common.meta_process import MetaProcess
@@ -67,7 +67,10 @@ class XetraETL():
     Reads the Xetra data, transforms and writes to the target location
     """
 
-    def __init__(self, s3_bucket_src: S3BucketConnector, s3_bucket_trg: S3BucketConnector, meta_key: str, src_args: XetraSourceConfig, trg_args:XetraTargetConfig):
+    def __init__(self, s3_bucket_src: S3BucketConnector,
+                s3_bucket_trg: S3BucketConnector,
+                meta_key: str, src_args: XetraSourceConfig,
+                trg_args:XetraTargetConfig):
         """
         Constructor for XetraTransformer
 
@@ -89,7 +92,7 @@ class XetraETL():
 
     def extract(self):
         """
-        Extraction of files based on list of prefixes. 
+        Extraction of files based on list of prefixes.
         Conversion into Pandas DataFrame
         """
         self._logger.info("Estracting Xetra files started...")
@@ -146,8 +149,10 @@ class XetraETL():
         data_frame[self.trg_args.trg_col_prev_clos]=\
             data_frame.sort_values(by=[self.src_arg.src_col_date])\
                 .groupby([self.src_arg.trg_col_isin])[self.trg_args.trg_col_clos_price].shift(1)
-        data_frame[self.trg_args.trg_col_ch_prev_clos]=(data_frame[self.trg_args.trg_col_clos_price]\
-            -data_frame[self.trg_args.trg_col_prev_clos])/data_frame[self.trg_args.trg_col_prev_clos]*100
+        data_frame[self.trg_args.trg_col_ch_prev_clos]=\
+            (data_frame[self.trg_args.trg_col_clos_price]\
+                -data_frame[self.trg_args.trg_col_prev_clos])\
+                    /data_frame[self.trg_args.trg_col_prev_clos]*100
         data_frame.drop(columns=[self.trg_args.trg_col_prev_clos],inplace=True)
         data_frame=data_frame.round(decimals=2)
         #filtering
@@ -173,7 +178,7 @@ class XetraETL():
 
     def etl_report1(self):
         """
-        ETL process 
+        ETL process
         """
         data_frame=self.extract()
         data_frame=self.transform_report1(data_frame)

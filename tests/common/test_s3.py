@@ -1,10 +1,10 @@
 """
 Test S3BucketCOnnector Methods
 """
-from calendar import c
 import os
 import unittest
 
+import pandas as pd
 import boto3
 from moto import mock_s3
 
@@ -92,5 +92,45 @@ class TestS3BucketConnectorMethods(unittest.TestCase):
         # Tests after method execution
         self.assertTrue(not list_result)
 
+    def test_write_df_to_s3_empty(self):
+        """
+        Tests the write_df_to_s3 method with
+        an empty DataFrame as input
+        """
+        # Expected results
+        return_exp = None
+        log_exp = 'The dataframe is empty! No file will be written!'
+        # Test init
+        df_empty = pd.DataFrame()
+        key = 'key.csv'
+        file_format = 'csv'
+        # Method execution
+        with self.assertLogs() as logm:
+            result = self.s3_bucket_conn.write_df_to_s3(df_empty, key, file_format)
+            # Log test after method execution
+            self.assertIn(log_exp, logm.output[0])
+        # Test after method execution
+        self.assertEqual(return_exp, result)
+
+    def test_save_to_s3_csv(self):
+        """
+        Test if CSV files would be saved
+        """
+        #create dummy Dataframe
+        data_frame=pd.DataFrame({'ISIN': ['11111','22222'],
+                                'MaxPrice': [22,33]
+                                })
+        #attempt to save to S3 mock
+        success=self.s3_bucket_conn.write_df_to_s3(data_frame,"testfile.csv","csv")
+        self.assertTrue(success)
+        self.s3_bucket.delete_objects(
+            Delete={
+                'Objects': [
+                    {
+                        'Key': 'testfile.csv'
+                    }
+                ]
+            }
+        )
 if __name__=="__main__":
     unittest.main()
