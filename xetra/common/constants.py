@@ -20,3 +20,4 @@ class MetaProcessFormat(Enum):
     META_SOURCE_DATE_COL = 'source_date'
     META_PROCESS_COL= 'datetime_of_processing'
     META_FILE_FORMAT = 'csv'
+    
