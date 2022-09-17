@@ -7,8 +7,7 @@ class S3FileTypes(Enum):
     """
     Supported files types for S3BucketConnector
     """
-
-    csv = "csv"
+    CSV = "csv"
     PARQUET = "parquet"
 
 class MetaProcessFormat(Enum):

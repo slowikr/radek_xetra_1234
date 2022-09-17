@@ -79,11 +79,16 @@ class XetraETL():
         self.src_arg=src_args
         self.trg_args=trg_args
         self.extract_date=''
-        self.extract_date_list=[]
+        self.extract_date_list=self.s3_bucket_src.list_in_prefix
         self.meta_update_list=[]
 
     def extract(self):
-        pass
+        """
+        Extraction of files based on list of prefixes. 
+        Conversion into Pandas DataFrame
+        """
+        files = [key for date in self.extract_date_list for key in list_file_in_prefix(bucket_obj,date)]
+        return pd.concat([read_csv_to_dataframe(obj, bucket_obj) for obj in files], ignore_index=True)
 
     def transform_report1(self):
         pass
