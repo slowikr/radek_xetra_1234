@@ -15,4 +15,3 @@ class WrongMetaFileException(Exception):
     Exception that can be raised when the meta file
     format is not correct.
     """
-    
