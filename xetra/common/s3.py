@@ -27,11 +27,12 @@ class S3BucketConnector():
         self._s3=self.session.resource(service_name='s3', endpoint_url=endpoint_url)
         self._bucket=self._s3.Bucket(bucket)
 
-    def list_in_prefix(self, prefix: str):
+    def list_files_in_prefix(self, prefix: str):
         """
         list of all files with specified prefix
         """
         files = [obj.key for obj in self._bucket.objects.filter(Prefix=prefix)]
+        print(files)
         return files
 
     def read_csv_to_df(self, key:str, decod='utf-8',dlm=','):
@@ -46,6 +47,7 @@ class S3BucketConnector():
           data_frame: Pandas DataFrame containing the data of the csv file
         """
         self._logger.info("Reading file %s%s%s",self.endpoint_url, self._bucket.name, key)
+        print(key)
         csv_obj=self._bucket.Object(key=key).get()['Body'].read().decode(decod)
         data=StringIO(csv_obj)
         return pd.read_csv(data, delimiter=dlm)

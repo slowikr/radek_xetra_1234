@@ -62,7 +62,7 @@ class TestS3BucketConnectorMethods(unittest.TestCase):
         self.s3_bucket.put_object(Body=csv_content, Key=key1_exp)
         self.s3_bucket.put_object(Body=csv_content, Key=key2_exp)
         # Method execution
-        list_result=self.s3_bucket_conn.list_in_prefix(prefix_exp)
+        list_result=self.s3_bucket_conn.list_files_in_prefix(prefix_exp)
         # Tests after method execution
         self.assertEqual(len(list_result),2)
         self.assertIn(key1_exp,list_result)
@@ -88,7 +88,7 @@ class TestS3BucketConnectorMethods(unittest.TestCase):
         # Expected results
         prefix_exp='no-prefix/'
         # Method execution
-        list_result=self.s3_bucket_conn.list_in_prefix(prefix_exp)
+        list_result=self.s3_bucket_conn.list_files_in_prefix(prefix_exp)
         # Tests after method execution
         self.assertTrue(not list_result)
 
@@ -99,7 +99,7 @@ class TestS3BucketConnectorMethods(unittest.TestCase):
         """
         # Expected results
         return_exp = None
-        log_exp = 'The dataframe is empty! No file will be written!'
+        log_exp = 'The dataframe is empyt, nothing to save'
         # Test init
         df_empty = pd.DataFrame()
         key = 'key.csv'

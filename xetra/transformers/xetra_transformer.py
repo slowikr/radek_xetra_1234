@@ -5,7 +5,7 @@ from datetime import datetime
 import pandas as pd
 from xetra.common.s3 import S3BucketConnector
 from xetra.common.meta_process import MetaProcess
-from xetra.common.constants import MetaProcessFormat
+from xetra.common.constants import MetaProcessFormat, S3FileTypes
 
 class XetraSourceConfig(NamedTuple):
     """
@@ -97,7 +97,7 @@ class XetraETL():
         """
         self._logger.info("Estracting Xetra files started...")
         files = [key for date in self.extract_date_list \
-                for key in self.s3_bucket_src.list_file_in_prefix(date)]
+                for key in self.s3_bucket_src.list_files_in_prefix(date) if date>=self.extract_date]
         if not files:
             data_frame = pd.DataFrame()
         else:
@@ -112,7 +112,7 @@ class XetraETL():
         """
         #part of code to select only required columns
         if data_frame.empty:
-            self._logger.info("No transformation is required as dataframe is empty")
+            self._logger.info('No transformation is required as dataframe is empty')
             return data_frame
         self._logger.info("Applying transformations to rwa data started...")
         #filtering columns
@@ -122,22 +122,22 @@ class XetraETL():
         #calculating opening price
         data_frame[self.trg_args.trg_col_op_price] = data_frame.sort_values(\
             by=[self.src_arg.src_col_time]).\
-                groupby([self.src_arg.trg_col_isin,self.src_arg.src_col_date])\
+                groupby([self.src_arg.src_col_isin,self.src_arg.src_col_date])\
                     [self.src_arg.src_col_start_price].transform('first')
         #calculating closing price
         data_frame[self.trg_args.trg_col_clos_price]=data_frame.sort_values(\
             by=[self.src_arg.src_col_time]).groupby(\
-                [self.src_arg.trg_col_isin,
+                [self.src_arg.src_col_isin,
                 self.src_arg.src_col_date])\
                     [self.src_arg.src_col_end_price].transform('last')
         #renaming columns
         data_frame.rename(columns={
-            self.src_arg.src_col_max_price:self.trg_args.trg_col_max_price,
+            self.src_arg.src_col_max_price: self.trg_args.trg_col_max_price,
             self.src_arg.src_col_min_price: self.trg_args.trg_col_min_price,
-            self.src_arg.src_col_traded_vol: self.src_arg.src_col_traded_vol
-        })
+            self.src_arg.src_col_traded_vol: self.trg_args.trg_col_dail_trad_vol
+        }, inplace=True)
         data_frame=data_frame.groupby([
-            self.src_arg.trg_col_isin,
+            self.src_arg.src_col_isin,
             self.src_arg.src_col_date], as_index=False)\
                 .agg({
                     self.trg_args.trg_col_op_price: 'min',
@@ -148,7 +148,7 @@ class XetraETL():
         #percent change prev closing
         data_frame[self.trg_args.trg_col_prev_clos]=\
             data_frame.sort_values(by=[self.src_arg.src_col_date])\
-                .groupby([self.src_arg.trg_col_isin])[self.trg_args.trg_col_clos_price].shift(1)
+                .groupby([self.src_arg.src_col_isin])[self.trg_args.trg_col_clos_price].shift(1)
         data_frame[self.trg_args.trg_col_ch_prev_clos]=\
             (data_frame[self.trg_args.trg_col_clos_price]\
                 -data_frame[self.trg_args.trg_col_prev_clos])\
@@ -157,7 +157,7 @@ class XetraETL():
         data_frame=data_frame.round(decimals=2)
         #filtering
         data_frame=data_frame[data_frame.Date>=self.extract_date].reset_index(drop=True)
-        self._logger.info("Trransformation completed")
+        self._logger.info("Transformation completed")
         return data_frame
 
     def load(self, data_frame:pd.DataFrame):
@@ -169,10 +169,10 @@ class XetraETL():
             return True
         self._logger.info("Loading data to S3 started..")
         key = self.trg_args.trg_key + datetime.today().strftime(
-            MetaProcessFormat.META_PROCESS_DATE_FORMAT) + self.trg_args.trg_format
-        self.s3_bucket_trg.write_df_to_s3(data_frame, key)
+            self.trg_args.trg_key_date_format) +'.'+ self.trg_args.trg_format
+        self.s3_bucket_trg.write_df_to_s3(data_frame, key, self.trg_args. trg_format)
         self._logger.info("Loading of the data is completed")
-        MetaProcess.update_meta_file(self.meta_update_list, self.meta_key, self.s3_bucket_trg)
+        MetaProcess.update_meta_file(self.s3_bucket_trg, self.meta_key, self.meta_update_list)
         self._logger.info("Meta file updated with latest dates")
         return True
 
